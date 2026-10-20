@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Электронный дневник оценок</title>
+    
+    <!-- Подключаем современный шрифт Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* CSS-переменные для адаптивной темы (iOS стиль) */
+        :root {
+            --bg-color: #f2f2f7;
+            --card-bg: #ffffff;
+            --text-primary: #1c1c1e;
+            --text-secondary: #8e8e93;
+            --accent-color: #007aff;
+            --accent-light: rgba(0, 122, 255, 0.1);
+            --danger-color: #ff3b30;
+            --border-color: #e5e5ea;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.08);
+            --radius-lg: 20px;
+            --radius-md: 14px;
+            --radius-sm: 10px;
+            
+            /* Цвета оценок */
+            --grade-5: #34c759;
+            --grade-4: #30b0c7;
+            --grade-3: #ff9500;
+            --grade-2: #ff3b30;
+        }
+
+        /* Темная тема при поддержке системой */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #000000;
+                --card-bg: #1c1c1e;
+                --text-primary: #ffffff;
+                --text-secondary: #8e8e93;
+                --accent-color: #0a84ff;
+                --accent-light: rgba(10, 132, 255, 0.15);
+                --danger-color: #ff453a;
+                --border-color: #2c2c2e;
+                --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+                --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 20px 16px;
+        }
+
+        /* Главный контейнер (адаптирован под мобильную ширину) */
+        .app-container {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Шапка */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 4px;
+        }
+
+        .header-title h1 {
+            font-size: 26px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .header-title p {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .btn-icon {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-icon:active {
+            transform: scale(0.92);
+            background: var(--border-color);
+        }
+
+        /* Карточка общего среднего балла */
+        .overall-card {
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            padding: 22px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+        }
+
+        .overall-info h2 {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .overall-info .subtitle {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+            opacity: 0.8;
+        }
+
+        .score-badge {
+            font-size: 28px;
+            font-weight: 700;
+            padding: 8px 16px;
+            border-radius: var(--radius-md);
+            color: #fff;
+            background-color: var(--text-secondary);
+            transition: background-color 0.3s ease;
+        }
+
+        /* Поле добавления предмета */
+        .add-subject-box {
+            display: flex;
+            gap: 10px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 14px 16px;
+            font-size: 15px;
+            color: var(--text-primary);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--accent-color);
+        }
+
+        .btn-primary {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            padding: 0 20px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.1s;
+        }
+
+        .btn-primary:active {
+            transform: scale(0.96);
+            opacity: 0.9;
+        }
+
+        /* Список предметов */
+        .subjects-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .subject-card {
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            padding: 16px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .subject-card:active {
+            transform: scale(0.98);
+        }
+
+        .subject-details {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-width: 70%;
+        }
+
+        .subject-name {
+            font-size: 17px;
+            font-weight: 600;
+        }
+
+        /* Список мини-чипсов оценок */
+        .grades-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .grade-pill {
+            font-size: 12px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 6px;
+            background: var(--bg-color);
+            color: var(--text-primary);
+        }
+
+        .grade-pill.weight-high {
+            border: 1px solid rgba(0, 0, 0, 0.15);
+            font-weight: 700;
+        }
+
+        .subject-average {
+            font-size: 18px;
+            font-weight: 700;
+            padding: 6px 12px;
+            border-radius: var(--radius-sm);
+            color: white;
+            min-width: 48px;
+            text-align: center;
+        }
+
+        /* Цветовая индикация среднего балла */
+        .bg-excellent { background-color: var(--grade-5); }
+        .bg-good { background-color: var(--grade-4); }
+        .bg-medium { background-color: var(--grade-3); color: #fff; }
+        .bg-poor { background-color: var(--grade-2); }
+        .bg-none { background-color: var(--border-color); color: var(--text-secondary); }
+
+        /* Всплывающее окно (Модальное окно предмета) */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+        }
+
+        @media (min-width: 520px) {
+            .modal-overlay {
+                align-items: center;
+            }
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 500px;
+            border-top-left-radius: 24px;
+            border-top-right-radius: 24px;
+            padding: 24px;
+            box-shadow: var(--shadow-md);
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.1, 0.9, 0.2, 1);
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        @media (min-width: 520px) {
+            .modal-content {
+                border-radius: 24px;
+                transform: translateY(20px);
+            }
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        /* Выбор оценки */
+        .grade-selector {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .btn-grade {
+            background: var(--bg-color);
+            border: 2px solid transparent;
+            border-radius: var(--radius-md);
+            padding: 14px 0;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn-grade.selected {
+            border-color: var(--accent-color);
+            background: var(--accent-light);
+            color: var(--accent-color);
+        }
+
+        .btn-add-grade {
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 24px;
+        }
+
+        /* История оценок */
+        .history-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 220px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            background: var(--bg-color);
+            border-radius: var(--radius-sm);
+        }
+
+        .history-val {
+            font-size: 16px;
+            font-weight: 700;
+            width: 24px;
+            text-align: center;
+        }
+
+        .btn-delete-grade {
+            background: none;
+            border: none;
+            color: var(--danger-color);
+            cursor: pointer;
+            font-size: 18px;
+            padding: 0 4px;
+            opacity: 0.7;
+        }
+
+        .btn-delete-grade:hover {
+            opacity: 1;
+        }
+
+        /* Кнопка удаления предмета внизу модалки */
+        .modal-footer {
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .btn-danger {
+            background: transparent;
+            color: var(--danger-color);
+            border: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            padding: 8px 0;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- Шапка -->
+        <header>
+            <div class="header-title">
+                <h1>Дневник</h1>
+                <p>Учет успеваемости</p>
+            </div>
+            <button class="btn-icon" id="reset-btn" title="Сбросить все данные">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            </button>
+        </header>
+
+        <!-- Общий балл -->
+        <div class="overall-card">
+            <div class="overall-info">
+                <h2>Средняя оценка</h2>
+                <div class="subtitle" id="overall-count">Предметов: 0</div>
+            </div>
+            <div class="score-badge bg-none" id="overall-score">-.-</div>
+        </div>
+
+        <!-- Добавление нового предмета -->
+        <div class="add-subject-box">
+            <input type="text" id="subject-input" placeholder="Название предмета..." maxlength="25">
+            <button class="btn-primary" id="add-subject-btn">Добавить</button>
+        </div>
+
+        <!-- Список предметов -->
+        <div class="subjects-list" id="subjects-list">
+            <!-- Предметы будут генерироваться с помощью JS -->
+        </div>
+    </div>
+
+    <!-- Модальное окно предмета -->
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="modal-subject-title">Предмет</div>
+                <button class="btn-icon" id="close-modal-btn">✕</button>
+            </div>
+
+            <!-- Форма добавления оценки -->
+            <div class="grade-selector">
+                <button class="btn-grade" data-value="5">5</button>
+                <button class="btn-grade" data-value="4">4</button>
+                <button class="btn-grade" data-value="3">3</button>
+                <button class="btn-grade" data-value="2">2</button>
+            </div>
+
+            <button class="btn-primary btn-add-grade" id="save-grade-btn">Поставить оценку</button>
+
+            <!-- История оценок -->
+            <div class="history-title">История оценок</div>
+            <div class="history-list" id="history-list">
+                <!-- Оценки предмета -->
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-danger" id="delete-subject-btn">Удалить предмет</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Начальный набор предметов (простые массивы оценок)
+        const DEFAULT_SUBJECTS = [
+            { id: '1', name: 'Алгебра', grades: [5, 4, 5, 3] },
+            { id: '2', name: 'Геометрия', grades: [4, 4] },
+            { id: '3', name: 'Физика', grades: [3, 4] },
+            { id: '4', name: 'Русский язык', grades: [5, 5, 4] },
+            { id: '5', name: 'Литература', grades: [5, 5] },
+            { id: '6', name: 'Английский язык', grades: [4, 5] }
+        ];
+
+        // Состояние приложения
+        let subjects = [];
+        let activeSubjectId = null;
+        let selectedGradeVal = null;
+
+        // DOM элементы
+        const subjectsListEl = document.getElementById('subjects-list');
+        const subjectInput = document.getElementById('subject-input');
+        const addSubjectBtn = document.getElementById('add-subject-btn');
+        const overallScoreEl = document.getElementById('overall-score');
+        const overallCountEl = document.getElementById('overall-count');
+        const resetBtn = document.getElementById('reset-btn');
+
+        // Модальное окно DOM
+        const modalOverlay = document.getElementById('modal-overlay');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        const modalSubjectTitle = document.getElementById('modal-subject-title');
+        const gradeBtns = document.querySelectorAll('.btn-grade');
+        const saveGradeBtn = document.getElementById('save-grade-btn');
+        const historyListEl = document.getElementById('history-list');
+        const deleteSubjectBtn = document.getElementById('delete-subject-btn');
+
+        // Инициализация
+        function init() {
+            const saved = localStorage.getItem('school_journal_data_v2');
+            if (saved) {
+                try {
+                    subjects = JSON.parse(saved);
+                } catch (e) {
+                    subjects = DEFAULT_SUBJECTS;
+                }
+            } else {
+                subjects = DEFAULT_SUBJECTS;
+            }
+            render();
+            setupEventListeners();
+        }
+
+        // Сохранение в LocalStorage
+        function saveState() {
+            localStorage.setItem('school_journal_data_v2', JSON.stringify(subjects));
+            render();
+        }
+
+        // Расчет прямого среднего балла
+        function calculateAverage(grades) {
+            if (!grades || grades.length === 0) return null;
+            const sum = grades.reduce((acc, curr) => acc + curr, 0);
+            return (sum / grades.length).toFixed(2);
+        }
+
+        // Определение CSS класса для цвета по балу
+        function getScoreClass(score) {
+            if (!score) return 'bg-none';
+            if (score >= 4.5) return 'bg-excellent';
+            if (score >= 3.6) return 'bg-good';
+            if (score >= 2.6) return 'bg-medium';
+            return 'bg-poor';
+        }
+
+        // Отрисовка интерфейса
+        function render() {
+            subjectsListEl.innerHTML = '';
+            
+            let totalAverageSum = 0;
+            let totalActiveSubjects = 0;
+
+            if (subjects.length === 0) {
+                subjectsListEl.innerHTML = `<div class="empty-state">Нет предметов. Добавьте первый предмет выше!</div>`;
+            }
+
+            subjects.forEach(subj => {
+                const avg = calculateAverage(subj.grades);
+                if (avg !== null) {
+                    totalAverageSum += parseFloat(avg);
+                    totalActiveSubjects++;
+                }
+
+                const card = document.createElement('div');
+                card.className = 'subject-card';
+                card.onclick = () => openModal(subj.id);
+
+                // Показываем последние 6 оценок
+                const recentGrades = subj.grades.slice(-6).map(g => {
+                    return `<span class="grade-pill">${g}</span>`;
+                }).join('');
+
+                const scoreClass = getScoreClass(avg);
+
+                card.innerHTML = `
+                    <div class="subject-details">
+                        <div class="subject-name">${escapeHtml(subj.name)}</div>
+                        <div class="grades-pills">${recentGrades || '<span style="font-size: 12px; color: var(--text-secondary);">Оценок нет</span>'}</div>
+                    </div>
+                    <div class="subject-average ${scoreClass}">${avg || '-.-'}</div>
+                `;
+
+                subjectsListEl.appendChild(card);
+            });
+
+            // Общий средний балл
+            if (totalActiveSubjects > 0) {
+                const overallAvg = (totalAverageSum / totalActiveSubjects).toFixed(2);
+                overallScoreEl.textContent = overallAvg;
+                overallScoreEl.className = `score-badge ${getScoreClass(overallAvg)}`;
+            } else {
+                overallScoreEl.textContent = '-.-';
+                overallScoreEl.className = 'score-badge bg-none';
+            }
+
+            overallCountEl.textContent = `Предметов: ${subjects.length}`;
+        }
+
+        // Обработчики событий
+        function setupEventListeners() {
+            // Добавление предмета
+            addSubjectBtn.onclick = addSubject;
+            subjectInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') addSubject();
+            });
+
+            // Сброс всех данных
+            resetBtn.onclick = () => {
+                if (confirm('Вы уверены, что хотите сбросить все предметы и оценки?')) {
+                    subjects = [];
+                    saveState();
+                }
+            };
+
+            // Выбор оценки
+            gradeBtns.forEach(btn => {
+                btn.onclick = () => {
+                    gradeBtns.forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                    selectedGradeVal = parseInt(btn.dataset.value);
+                };
+            });
+
+            // Сохранение оценки
+            saveGradeBtn.onclick = addGrade;
+
+            // Закрытие модального окна
+            closeModalBtn.onclick = closeModal;
+            modalOverlay.onclick = (e) => {
+                if (e.target === modalOverlay) closeModal();
+            };
+
+            // Удаление предмета
+            deleteSubjectBtn.onclick = () => {
+                if (confirm('Удалить предмет и все его оценки?')) {
+                    subjects = subjects.filter(s => s.id !== activeSubjectId);
+                    closeModal();
+                    saveState();
+                }
+            };
+        }
+
+        function addSubject() {
+            const name = subjectInput.value.trim();
+            if (!name) return;
+
+            const newSubject = {
+                id: Date.now().toString(),
+                name: name,
+                grades: []
+            };
+
+            subjects.push(newSubject);
+            subjectInput.value = '';
+            saveState();
+        }
+
+        function openModal(id) {
+            activeSubjectId = id;
+            const subj = subjects.find(s => s.id === id);
+            if (!subj) return;
+
+            modalSubjectTitle.textContent = subj.name;
+            resetGradeForm();
+            renderHistory(subj);
+
+            modalOverlay.classList.add('active');
+        }
+
+        function closeModal() {
+            modalOverlay.classList.remove('active');
+            activeSubjectId = null;
+        }
+
+        function resetGradeForm() {
+            selectedGradeVal = null;
+            gradeBtns.forEach(b => b.classList.remove('selected'));
+        }
+
+        function addGrade() {
+            if (!selectedGradeVal) {
+                alert('Пожалуйста, выберите оценку!');
+                return;
+            }
+
+            const subj = subjects.find(s => s.id === activeSubjectId);
+            if (!subj) return;
+
+            subj.grades.push(selectedGradeVal);
+
+            resetGradeForm();
+            renderHistory(subj);
+            saveState();
+        }
+
+        function deleteGrade(index) {
+            const subj = subjects.find(s => s.id === activeSubjectId);
+            if (!subj) return;
+
+            subj.grades.splice(index, 1);
+            renderHistory(subj);
+            saveState();
+        }
+
+        function renderHistory(subj) {
+            historyListEl.innerHTML = '';
+
+            if (subj.grades.length === 0) {
+                historyListEl.innerHTML = `<div style="text-align:center; color:var(--text-secondary); font-size:13px; padding:10px;">Оценок пока нет</div>`;
+                return;
+            }
+
+            // Рендерим в обратном порядке (новые сверху)
+            [...subj.grades].reverse().forEach((gradeVal, idx) => {
+                const realIndex = subj.grades.length - 1 - idx;
+                const item = document.createElement('div');
+                item.className = 'history-item';
+                item.innerHTML = `
+                    <div class="history-val">${gradeVal}</div>
+                    <button class="btn-delete-grade" onclick="deleteGrade(${realIndex})">✕</button>
+                `;
+                historyListEl.appendChild(item);
+            });
+        }
+
+        // Защита от XSS
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
+
+        // Запуск
+        window.onload = init;
+    </script>
+</body>
+</html>
